@@ -1,0 +1,85 @@
+﻿using UnityEngine;
+using System.Collections;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
+
+// A very simplistic car driving on the x-z plane.
+
+public class Drive : MonoBehaviour
+{
+    public float speed = 10.0f;
+    public float rotationSpeed = 100.0f;
+
+    public GameObject fuel;
+
+    void Start()
+    {
+
+    }
+
+    void LateUpdate()
+    {
+        // Get the horizontal and vertical axis.
+        // By default they are mapped to the arrow keys.
+        // The value is in the range -1 to 1
+        float translation = Input.GetAxis("Vertical") * speed;
+        float rotation = Input.GetAxis("Horizontal") * rotationSpeed;
+
+        // Make it move 10 meters per second instead of 10 meters per frame...
+        translation *= Time.deltaTime;
+        rotation *= Time.deltaTime;
+
+        // Move translation along the object's z-axis
+        transform.Translate(0, translation, 0);
+
+        // Rotate around our y-axis
+        transform.Rotate(0, 0, -rotation);
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            CalculateDistance();
+            CalculateAngle();
+        }
+
+    }
+
+    void CalculateDistance()
+    {
+        float distance = 0;
+        distance = Mathf.Sqrt(Mathf.Pow(fuel.transform.position.x - transform.position.x, 2f) + Mathf.Pow(fuel.transform.position.y - transform.position.y, 2f));
+        //Unity distance
+        float uDistance = Vector3.Distance(fuel.transform.position, transform.position);
+        Vector3 tankToFuel = fuel.transform.position - transform.position;
+        Debug.Log("Distance: " + distance + "; Unity distance: " + uDistance + "; V Magnitude: " + tankToFuel.magnitude + "; V SqrMagnitude: " + tankToFuel.sqrMagnitude);
+    }
+
+    void CalculateAngle()
+    {
+        Vector3 tankForward = transform.up;
+        Vector3 fuelDirection = fuel.transform.position - transform.position;
+
+        Debug.DrawRay(transform.position, tankForward, Color.green, 2);
+        Debug.DrawRay(transform.position, fuelDirection, Color.red, 2);
+
+        Debug.Log("tankForward x: " + tankForward.x + "; tankForward y: " + tankForward.y);
+
+        // Скалярное произведение
+        float dot = tankForward.x * fuelDirection.x + tankForward.y * fuelDirection.y;
+
+        // Это вектора, которые уже имеют длину и идут от танка до своих целей, поэтому нам второй вектор не нужен. Вычисляем магнитуды векторов
+        float tankMagitude = Mathf.Sqrt(Mathf.Pow(tankForward.x, 2f) + Mathf.Pow(tankForward.y, 2f));
+        float fuelMagnitude = Mathf.Sqrt(Mathf.Pow(fuelDirection.x, 2f) + Mathf.Pow(fuelDirection.y, 2f));
+
+        Debug.Log(tankMagitude + "; Unity tank: " + tankForward.magnitude + "; " + fuelMagnitude + "; Unity fuel: " + fuelDirection.magnitude);
+
+        // Угол
+        float angle = Mathf.Acos(dot / (tankMagitude * fuelMagnitude));
+
+        // Угол с магнитудой от юнити
+        float angle2 = Mathf.Acos(dot / (tankForward.magnitude * fuelDirection.magnitude));
+
+        Debug.Log("Dot: " + dot + "; Unity dot: " + Vector3.Dot(tankForward, fuelDirection));
+        Debug.Log("Angle: " + angle * Mathf.Rad2Deg + "; Angle2 :" + angle2 * Mathf.Rad2Deg + "; Unity Angle: " + Vector3.Angle(tankForward, fuelDirection));
+
+    }
+}
