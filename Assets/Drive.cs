@@ -58,7 +58,7 @@ public class Drive : MonoBehaviour
         Vector3 tankForward = transform.up;
         Vector3 fuelDirection = fuel.transform.position - transform.position;
 
-        Debug.DrawRay(transform.position, tankForward, Color.green, 2);
+        Debug.DrawRay(transform.position, tankForward * 10, Color.green, 2);
         Debug.DrawRay(transform.position, fuelDirection, Color.red, 2);
 
         Debug.Log("tankForward x: " + tankForward.x + "; tankForward y: " + tankForward.y);
@@ -81,5 +81,25 @@ public class Drive : MonoBehaviour
         Debug.Log("Dot: " + dot + "; Unity dot: " + Vector3.Dot(tankForward, fuelDirection));
         Debug.Log("Angle: " + angle * Mathf.Rad2Deg + "; Angle2 :" + angle2 * Mathf.Rad2Deg + "; Unity Angle: " + Vector3.Angle(tankForward, fuelDirection));
 
+        
+        int clockwise = 1;
+        // Если z > 0, то цель находится под углом по часовой стрелки, если z<0, то цель находится под углом против часовой стрелки
+        if (Cross(tankForward, fuelDirection).z < 0)
+            clockwise = -1;
+
+
+
+        // Разворачиваем танк на топливо 
+        transform.Rotate(0, 0, angle * Mathf.Rad2Deg * clockwise);
+    }
+
+    // Нахождение векторного произведения
+    Vector3 Cross(Vector3 v, Vector3 w)
+    {
+        float xMult = v.y * w.z - v.z * w.y;
+        float yMult = v.x * w.z - v.z * w.x;
+        float zMult = v.x * w.y - v.y * w.x;
+
+        return new Vector3(xMult, yMult, zMult);
     }
 }
