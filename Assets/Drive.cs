@@ -8,13 +8,15 @@ using UnityEngine.UIElements;
 public class Drive : MonoBehaviour
 {
     public float speed = 10.0f;
-    public float rotationSpeed = 100.0f;
+    public float rotationSpeed = 20f;
+    float rotationSpeedForAutopilot;
 
     public GameObject fuel;
+    bool autopilot = false;
 
     void Start()
     {
-
+        rotationSpeedForAutopilot = rotationSpeed * 0.00005f;
     }
 
     void LateUpdate()
@@ -37,13 +39,23 @@ public class Drive : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            CalculateDistance();
-            CalculateAngle();
+            CalculateDistanceDebug();
+            CalculateAngleDebug();
         }
 
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            autopilot = !autopilot;
+        }
+
+        if (CalculateDistance() < 2f && autopilot)
+            autopilot = !autopilot;
+
+        if (autopilot)
+            AutoPilot();
     }
 
-    void CalculateDistance()
+    void CalculateDistanceDebug()
     {
         float distance = 0;
         distance = Mathf.Sqrt(Mathf.Pow(fuel.transform.position.x - transform.position.x, 2f) + Mathf.Pow(fuel.transform.position.y - transform.position.y, 2f));
@@ -53,7 +65,14 @@ public class Drive : MonoBehaviour
         Debug.Log("Distance: " + distance + "; Unity distance: " + uDistance + "; V Magnitude: " + tankToFuel.magnitude + "; V SqrMagnitude: " + tankToFuel.sqrMagnitude);
     }
 
-    void CalculateAngle()
+    float CalculateDistance()
+    {
+        float distance;
+        distance = Mathf.Sqrt(Mathf.Pow(fuel.transform.position.x - transform.position.x, 2f) + Mathf.Pow(fuel.transform.position.y - transform.position.y, 2f));
+        return distance;
+    }
+
+    void CalculateAngleDebug()
     {
         Vector3 tankForward = transform.up;
         Vector3 fuelDirection = fuel.transform.position - transform.position;
@@ -81,7 +100,7 @@ public class Drive : MonoBehaviour
         Debug.Log("Dot: " + dot + "; Unity dot: " + Vector3.Dot(tankForward, fuelDirection));
         Debug.Log("Angle: " + angle * Mathf.Rad2Deg + "; Angle2 :" + angle2 * Mathf.Rad2Deg + "; Unity Angle: " + Vector3.Angle(tankForward, fuelDirection));
 
-        
+
         int clockwise = 1;
         // Если z > 0, то цель находится под углом по часовой стрелки, если z<0, то цель находится под углом против часовой стрелки
         if (Cross(tankForward, fuelDirection).z < 0)
@@ -93,6 +112,26 @@ public class Drive : MonoBehaviour
         transform.Rotate(0, 0, angle * Mathf.Rad2Deg * clockwise);
     }
 
+    void CalculateAngle()
+    {
+        Vector3 tankForward = transform.up;
+        Vector3 fuelDirection = fuel.transform.position - transform.position;
+
+        Debug.DrawRay(transform.position, tankForward * 10, Color.green, 2);
+        Debug.DrawRay(transform.position, fuelDirection, Color.red, 2);
+
+        float dot = tankForward.x * fuelDirection.x + tankForward.y * fuelDirection.y;
+        float angle = Mathf.Acos(dot / (tankForward.magnitude * fuelDirection.magnitude));
+        int clockwise = 1;
+        // Если z > 0, то цель находится под углом по часовой стрелки, если z<0, то цель находится под углом против часовой стрелки
+        if (Cross(tankForward, fuelDirection).z < 0)
+            clockwise = -1;
+        // Разворачиваем танк на топливо 
+        if (angle * Mathf.Rad2Deg > 5)
+            // transform.Rotate(0, 0, angle * Mathf.Rad2Deg * clockwise * Time.deltaTime * rotationSpeed * 0.05f); // Вариант из курса, но он не верный, т.к. угол напрямую влияет на скорость поворота
+            transform.Rotate(0, 0, clockwise * Time.deltaTime * rotationSpeed); // угол влияет только на то, в какую сторону надо поворачиваться
+    } 
+
     // Нахождение векторного произведения
     Vector3 Cross(Vector3 v, Vector3 w)
     {
@@ -101,5 +140,11 @@ public class Drive : MonoBehaviour
         float zMult = v.x * w.y - v.y * w.x;
 
         return new Vector3(xMult, yMult, zMult);
+    }
+
+    void AutoPilot()
+    {
+        CalculateAngle();
+        transform.position += transform.up * speed * Time.deltaTime;
     }
 }
