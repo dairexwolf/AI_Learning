@@ -466,7 +466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
-  rotationSpeed: 100
+  rotationSpeed: 40
   fuel: {fileID: 108656807}
 --- !u!1001 &1459591077
 PrefabInstance:
