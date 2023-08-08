@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class PathMarker
 {
@@ -202,6 +203,20 @@ public class FindPathAStar : MonoBehaviour
         return false;
     }
 
+    void GetPath()
+    {
+        RemoveAllMarkers();
+        PathMarker begin = lastPos;
+
+        while (!startNode.Equals(begin) && begin != null)
+        {
+            Instantiate(path, new Vector3(begin.location.x * maze.scale, 0, begin.location.z * maze.scale), Quaternion.identity);
+            begin = begin.parent;
+        }
+
+        Instantiate(path, new Vector3(startNode.location.x * maze.scale, 0, startNode.location.z * maze.scale), Quaternion.identity);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -213,7 +228,8 @@ public class FindPathAStar : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.P))
             BeginSearch();
-        if (Input.GetKeyDown(KeyCode.C)) 
+        if (Input.GetKeyDown(KeyCode.C) && !done) 
             Serach(lastPos);
+        if (Input.GetKeyDown(KeyCode.M)) GetPath();
     }
 }
