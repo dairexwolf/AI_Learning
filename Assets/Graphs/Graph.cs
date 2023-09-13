@@ -12,6 +12,20 @@ public class Graph
     // Path info
     List<Node> pathList = new List<Node>();
 
+    public List<Node> PathList
+    {
+        get
+        {
+
+            return pathList;
+        }
+        set
+        {
+            if (value.GetType() == typeof(List<Node>))
+                pathList = value;
+        }
+    }
+
     public Graph() { }
 
     public void AddNode(GameObject id)
@@ -25,7 +39,7 @@ public class Graph
         Node from = FindNode(fromNode);
         Node to = FindNode(toNode);
 
-        if(from !=null && to != null)
+        if (from != null && to != null)
         {
             Edge e = new Edge(from, to);
             edges.Add(e);
@@ -36,7 +50,7 @@ public class Graph
 
     Node FindNode(GameObject id)
     {
-        foreach(Node n in nodes)
+        foreach (Node n in nodes)
         {
             if (n.getId() == id)
                 return n;
@@ -47,6 +61,12 @@ public class Graph
     // –еализаци€ A* алгоритма на вейпоинтах
     public bool AStar(GameObject startId, GameObject endId)
     {
+        if(startId == endId)
+        {
+            pathList.Clear();
+            return false;
+        }
+
         // Ќачало пути
         Node start = FindNode(startId);
         // конец пути
@@ -74,13 +94,13 @@ public class Graph
         open.Add(start);
 
         // ÷икл прохода по открытым нодам
-        while(open.Count>0)
+        while (open.Count > 0)
         {
             // Ѕерем ноду с минимальным F
             int i = LowestF(open);
             Node thisNode = open[i];
             // ≈сли нода конечна€, то все сделали
-            if(thisNode.getId() == endId)
+            if (thisNode.getId() == endId)
             {
                 ReconstructPath(start, end);
                 return true;
@@ -92,7 +112,7 @@ public class Graph
             // Ќачинаем проходку по сосед€м только что закрытой ноды
             Node neighbor;
             // Ѕудем смотреть по гран€м, которые идут от ноды
-            foreach(Edge e in thisNode.edgeList)
+            foreach (Edge e in thisNode.edgeList)
             {
                 neighbor = e.endNode;
 
@@ -103,15 +123,15 @@ public class Graph
                 // ≈сли нет, то рассчитывем ее временное значение от текущей ноды до соседа, которого мы смотрим
                 // Ќужно будет, чтобы потом пон€ть, нужно ли нам по ней снова идти
                 tentative_g_score = thisNode.g + Distance(thisNode, neighbor);
-                
+
                 // ≈сли нода еще не открыта, мы ее открываем, чтобы рассчитать ее параметры G, H и F
-                if(open.IndexOf(neighbor) == -1)
+                if (open.IndexOf(neighbor) == -1)
                 {
                     open.Add(neighbor);
                     tentative_is_better = true;
                 }
                 // ≈сли временное значение меньше, чем уже высчитанна€ g (все таки нода открыта), то будем ее перерассчитывать.
-                else if(tentative_g_score < neighbor.g)
+                else if (tentative_g_score < neighbor.g)
                 {
                     tentative_is_better = true;
                 }
@@ -122,7 +142,7 @@ public class Graph
                 }
 
                 // –асчитываем характеристики ноды
-                if(tentative_is_better)
+                if (tentative_is_better)
                 {
                     neighbor.cameFrom = thisNode;
                     neighbor.g = tentative_g_score;
@@ -169,7 +189,7 @@ public class Graph
 
         var p = endId.cameFrom;
         // ѕока не достигнем стартового вейпоинта
-        while(p != startId && p!=null)
+        while (p != startId && p != null)
         {
             // ¬ставл€ем в начало списка вейпоинт, с которого перешли на текущий
             pathList.Insert(0, p);
