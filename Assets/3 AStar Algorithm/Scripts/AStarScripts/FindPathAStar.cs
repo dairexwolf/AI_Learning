@@ -140,7 +140,7 @@ public class FindPathAStar : MonoBehaviour
             float H = Vector2.Distance(neighbour.ToVector(), goalNode.location.ToVector());
             float F = G + H;
 
-            // Ставим соседние маркеры
+            // Ставим соседние маркеры ( по одному )
             GameObject pathBlock = Instantiate(path, new Vector3(neighbour.x * maze.scale, 0, neighbour.z * maze.scale), Quaternion.identity);
 
             // В маркере есть текст, пишем туда значения
@@ -196,6 +196,7 @@ public class FindPathAStar : MonoBehaviour
     /// <returns>true, если занято; false, если свободно</returns>
     bool IsClosed(MapLocation marker)
     {
+        // Хотя конечно это лучше сделать в виде свойства у объекта, чем создавать для этого список
         foreach(PathMarker p in closed)
         {
             if (p.location.Equals(marker)) return true;
@@ -205,15 +206,17 @@ public class FindPathAStar : MonoBehaviour
 
     void GetPath()
     {
+        // Убираем все маркеры, они нам не нужны
         RemoveAllMarkers();
+        // Берем последний маркер, который дошел до конца пути
         PathMarker begin = lastPos;
-
+        // Начинаем их ставить, пока не дойдем до начального маркера
         while (!startNode.Equals(begin) && begin != null)
         {
             Instantiate(path, new Vector3(begin.location.x * maze.scale, 0, begin.location.z * maze.scale), Quaternion.identity);
             begin = begin.parent;
         }
-
+        // СТавим начальный маркер
         Instantiate(path, new Vector3(startNode.location.x * maze.scale, 0, startNode.location.z * maze.scale), Quaternion.identity);
     }
 
