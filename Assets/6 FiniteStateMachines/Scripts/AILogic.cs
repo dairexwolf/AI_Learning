@@ -14,6 +14,8 @@ public class AILogic : MonoBehaviour
     public State currentState;
     public string currentEvent;
 
+    public List<GameObject> checkpoints;
+
 
     // Подготовка
     void Start()
@@ -21,6 +23,8 @@ public class AILogic : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         anim = GetComponent<Animator>();
         currentState = new Idle(this.gameObject, agent, anim, player);
+
+        checkpoints = GameEnviroment.Singleton.Checkpoints;
     }
 
     // Update is called once per frame

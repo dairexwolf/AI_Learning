@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 // Если класс объявлен с модификатором sealed, то от этого класса нельзя наследовать и создавать производные классы.
@@ -22,10 +23,19 @@ public sealed class GameEnviroment
         { 
             if (instance == null) 
             { instance = new GameEnviroment(); 
-                instance.Checkpoints.AddRange(GameObject.FindGameObjectsWithTag("Checkpoint")); 
+                instance.Checkpoints.AddRange(GameObject.FindGameObjectsWithTag("Checkpoint"));
+                instance.OrderCheckpoints();
             } 
             return instance; 
         } 
+    }
+
+    public void OrderCheckpoints()
+    {
+        if (!(instance == null))
+        {
+            instance.checkpoints = checkpoints.OrderBy(na => na.name).ToList();
+        }
     }
 
 }
