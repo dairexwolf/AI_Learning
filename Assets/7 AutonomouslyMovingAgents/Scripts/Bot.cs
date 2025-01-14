@@ -38,7 +38,14 @@ public class Bot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Wander();
+        CleverHide();
+    }
+
+    bool CanSeeTarget()
+    {
+        RaycastHit raycastInfo;
+        // Vector3 rayToTarget = this.tr;
+        return true;
     }
 
     /// <summary>
@@ -98,7 +105,7 @@ public class Bot : MonoBehaviour
         float relativeHeading = Vector3.Angle(transform.forward, this.transform.TransformVector(target.transform.forward));
         // Рассчитываем угол между вектором движения преследующего и дистанцией для цели. Позволяет понять, спереди или сзади находится цель
         float toTarget = Vector3.Angle(transform.forward, transform.TransformVector(targetDir));
-        
+
         // Если цель перестала двигаться, то просто бежим
         // И если цель спереди (toTarget > 90) и их пути не пересекаются (relativeHeading < 20)
         if ((toTarget < 90 && relativeHeading < 20) || targetDrive.currentSpeed < 0.01f)
@@ -146,15 +153,15 @@ public class Bot : MonoBehaviour
 
         // Получение всех объектов, за которыми можно спрятаться
         int len = World.Instance.GetHidingSpots().Length;
-        
+
         // Перебор всех препятсвий и выбор ближайшего
-        for (int i=0;i<len; i++)
+        for (int i = 0; i < len; i++)
         {
             Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
-            // Умножаем на 5, чтобы вынести координату за препятствие
-            Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 8;
+            // Умножаем на 10, чтобы вынести координату за препятствие
+            Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 10;
 
-            if(Vector3.Distance(this.transform.position, hidePos)<dist)
+            if (Vector3.Distance(this.transform.position, hidePos) < dist)
             {
                 chosenSpot = hidePos;
                 dist = Vector3.Distance(this.transform.position, hidePos);
@@ -162,6 +169,55 @@ public class Bot : MonoBehaviour
         }
 
         Seek(chosenSpot);
+    }
+
+    /// <summary>
+    /// Более продвинутое поведение НИП при попытке спрятаться.
+    /// </summary>
+    void CleverHide()
+    {
+        // Инициализация переменных
+        float dist = Mathf.Infinity;
+        Vector3 chosenSpot = Vector3.zero;
+        // Запоминаем направление, куда выберет идти НИП
+        Vector3 chosenDir = Vector3.zero;
+        // Выбранное НИПом препятствие
+        GameObject chosenGO = World.Instance.GetHidingSpots()[0];
+
+        // Получение всех объектов, за которыми можно спрятаться
+        int len = World.Instance.GetHidingSpots().Length;
+
+        // Перебор всех препятствий и выбор ближайшего
+        for (int i = 0; i < len; i++)
+        {
+            Vector3 hideDir = World.Instance.GetHidingSpots()[i].transform.position - target.transform.position;
+            // Умножаем на 10, чтобы вынести координату за препятствие
+            Vector3 hidePos = World.Instance.GetHidingSpots()[i].transform.position + hideDir.normalized * 10;
+
+            // Если выбираем, то записываем все в ранее обозначенные позиции
+            if (Vector3.Distance(this.transform.position, hidePos) < dist)
+            {
+                chosenSpot = hidePos;
+                chosenDir = hideDir;
+                chosenGO = World.Instance.GetHidingSpots()[i];
+                dist = Vector3.Distance(this.transform.position, hidePos);
+
+            }
+        }
+
+        // Берем коллайдер выбранного объекта
+        Collider hideCol = chosenGO.GetComponent<Collider>();
+        // Создаем объект луча из выбранного направления и направляем его обратно
+        Ray backRay = new Ray(chosenSpot, -chosenDir.normalized);
+        // Инициализируем параметры луча
+        RaycastHit info;
+        float rayDistance = 100f;
+        // Создаем луч. Отличие от  Physics коллайдера в том, что он игнорирует все коллайдеры, кроме этого
+        hideCol.Raycast(backRay, out info, rayDistance);
+        Debug.DrawRay(chosenSpot, -chosenDir.normalized * 10, Color.red);
+
+        // Направляем НИПа к точке, куда попал луч, плюс небольшое смещение в направлении chosenDir.
+        Seek(info.point + chosenDir.normalized * 5);
     }
 
 }
