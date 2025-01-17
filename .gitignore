@@ -71,4 +71,8 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
+# Big Data
 /Assets/5 NavMeshes/2 NavMeshAgents/a3D Game Kit - Environment Pack/Unity Technologies/
+
+# Temp files
+*.meta

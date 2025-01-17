@@ -28,30 +28,148 @@ public class Bot : MonoBehaviour
     /// </summary>
     Vector3 wanderTarget = Vector3.zero;
 
+    /// <summary>
+    /// Расстояние, на котором видит НИП
+    /// </summary>
+    public float seeingDistance = 10f;
+
+    // Кулдаун для поведения НИПа
+    bool coolDown = false;
+
     // Start is called before the first frame update
     void Start()
     {
         agent = this.GetComponent<NavMeshAgent>();
         targetDrive = target.GetComponent<DrivePoliceman>();
+
+        // Проверяем работоспособность метода CanSeeMe()
+        // StartCoroutine(LogCoroutine());
     }
 
     // Update is called once per frame
     void Update()
     {
-        CleverHide();
+        if (!coolDown)
+        {
+            /*
+             * При использовании метода TargetInRange()
+             * if(!TargetInRange())
+             *      Wander();
+             */
+            
+            // Если видит цель
+            if (CanSeeTarget())
+            {
+                // Если видят его, то НИП прячется
+                if (CanSeeMe())
+                {
+                    // НИП прячется
+                    CleverHide();
+                    // Переводим кулдаун в true
+                    coolDown = true;
+                    // Через семь секунд вызываем функцию, которая переведет кулдаун в false.
+                    // Предотвращает быстрое переключение между поведениями
+                    Invoke("BehaviorCooldown", 7);
+                }
+                // Если его не видят, то он приследует
+                else
+                    Pursue();
+            }
+            // Иначе бродит
+            else
+            {
+                Wander();
+            }
+        }
     }
 
+    /// <summary>
+    /// Переводим кулдаун в false
+    /// </summary>
+    void BehaviorCooldown()
+    {
+        coolDown = false;
+    }
+
+    /// <summary>
+    /// Метод на проверку дистанции
+    /// </summary>
+    /// <returns></returns>
+    /// Мной не используется, так как я ввел это в проверяющие методы
+    bool TargetInRange()
+    {
+        if (Vector3.Distance(this.transform.position, target.transform.position) < seeingDistance)
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Может ли НИП видеть свою цель. 
+    /// </summary>
+    /// <returns> Посылает луч от НИП до цели, и если он видит цель, то true; иначе false</returns>
     bool CanSeeTarget()
     {
-        RaycastHit raycastInfo;
-        // Vector3 rayToTarget = this.tr;
-        return true;
+        // Инициализация переменных для луча
+        RaycastHit rayCastInfo;
+        // Дистанция до цели
+        Vector3 rayToTarget = target.transform.position - this.transform.position;
+
+        // Рассчитываем угол между вектором движения преследующего и дистанцией для цели. Позволяет понять, спереди или сзади находится цель
+        float lookAngle = Vector3.Angle(this.transform.forward, transform.TransformVector(rayToTarget));
+
+        // И если цель спереди (lookAngle < 90) и дистанция меньше 10
+        if (lookAngle < 80 && rayToTarget.magnitude < seeingDistance)
+        {
+            // Создаем луч
+            if (Physics.Raycast(this.transform.position, rayToTarget, out rayCastInfo))
+            {
+                // Если луч встретился с целью (между ними нет объектов)
+                if (rayCastInfo.transform.gameObject.tag == "cop")
+                    // Тогда видит
+                    return true;
+            }
+        }
+
+        // Иначе не видит
+        return false;
+
+    }
+
+    /// <summary>
+    /// Функция, которая показывает, может ли цель видеть этого НИПа
+    /// </summary>
+    /// <returns>True, если может; False, если не может</returns>
+    bool CanSeeMe()
+    {
+        // Инициализация переменных для луча
+        RaycastHit rayCastInfo;
+        // Дистанция до цели
+        Vector3 rayToMe = this.transform.position - target.transform.position;
+
+        // Рассчитываем угол между вектором движения преследующего и дистанцией для цели. Позволяет понять, спереди или сзади находится цель
+        float lookAngle = Vector3.Angle(target.transform.forward, rayToMe);
+
+        // И если цель спереди (lookAngle < 90) и дистанция меньше 10
+        if (lookAngle < 80 && rayToMe.magnitude < seeingDistance)
+        {
+            // Создаем луч
+            if (Physics.Raycast(target.transform.position, rayToMe, out rayCastInfo))
+            {
+                // Если луч встретился с целью (между ними нет объектов)
+                if (rayCastInfo.transform.gameObject.tag == "rob")
+                    // Тогда видит
+                    return true;
+            }
+        }
+
+        // Иначе не видит
+        return false;
     }
 
     /// <summary>
     /// Преследование цели по заданой координате
     /// </summary>
-    /// <param name="location"></param>
+    /// <param name="location"> Куда вести НИПа</param>
     void Seek(Vector3 location)
     {
         agent.SetDestination(location);
@@ -220,4 +338,16 @@ public class Bot : MonoBehaviour
         Seek(info.point + chosenDir.normalized * 5);
     }
 
+    /// <summary>
+    /// Корутина для проверки метода CanSeeMe
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator LogCoroutine()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(3f);
+            Debug.Log(CanSeeMe());
+        }
+    }
 }
