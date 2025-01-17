@@ -10,6 +10,9 @@ TagManager:
   - Fire
   - CinemachineTarget
   - Safe
+  - hide
+  - cop
+  - rob
   layers:
   - Default
   - TransparentFX
