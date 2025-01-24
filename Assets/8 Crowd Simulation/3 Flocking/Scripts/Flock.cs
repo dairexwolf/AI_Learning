@@ -6,27 +6,46 @@ public class Flock : MonoBehaviour
 {
 
     public float speed;
+    bool turning = false;
+
+    Bounds bounds;
 
     // Start is called before the first frame update
     void Start()
     {
         speed = Random.Range(FlockManager.FM.minSpeed, FlockManager.FM.maxSpeed);
+        // Устанавливаем границы для плаванья
+        bounds = new Bounds(FlockManager.FM.transform.position, FlockManager.FM.swimLimits * 2);
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Делаем скорость рандомной
-        if(Random.Range(0, 100)<10)
-        {
-            speed = Random.Range(FlockManager.FM.minSpeed, FlockManager.FM.maxSpeed);
-        }
+        // Если рыба вышла из области, ставим флаг, что разворачиваем ее обратно
+        if (!bounds.Contains(transform.position))
+            turning = true;
+        else
+            turning = false;
 
-        if (Random.Range(0, 100) < 15)
+        if (turning)
         {
-            ApplyRules();
+            Vector3 dir = FlockManager.FM.transform.position - this.transform.position;
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), FlockManager.FM.rotationSpeed * Time.deltaTime);
         }
-        
+        else
+        {
+
+            // Делаем скорость рандомной
+            if (Random.Range(0, 100) < 10)
+            {
+                speed = Random.Range(FlockManager.FM.minSpeed, FlockManager.FM.maxSpeed);
+            }
+
+            if (Random.Range(0, 100) < 15)
+            {
+                ApplyRules();
+            }
+        }
         // Двигаем рыбовое вперед
         this.transform.Translate(0, 0, speed * Time.deltaTime);
     }
@@ -51,15 +70,15 @@ public class Flock : MonoBehaviour
         int groupSize = 0;
 
         // Перебираем всех рыбов
-        foreach(GameObject go in gameObjects)
+        foreach (GameObject go in gameObjects)
         {
             // Если это не эта рыба
-            if(go != this.gameObject)
+            if (go != this.gameObject)
             {
                 // Смотрим дистанцию, чтобы образовывать группы
                 nDistance = Vector3.Distance(go.transform.position, this.transform.position);
                 // Если образовываем группу
-                if(nDistance <= FlockManager.FM.neighbourDistance)
+                if (nDistance <= FlockManager.FM.neighbourDistance)
                 {
                     // Вычисляем центр группы
                     vCentre += go.transform.position;
@@ -67,13 +86,13 @@ public class Flock : MonoBehaviour
                     groupSize++;
 
                     // Если сосед слишком близко
-                    if(nDistance<1.0f)
+                    if (nDistance < 1.0f)
                     {
                         // Уворачиваемся
                         vAvoid = vAvoid + (this.transform.position - go.transform.position);
                     }
 
-                    
+
                     Flock anotherFlock = go.GetComponent<Flock>();
                     gSpeed = gSpeed + anotherFlock.speed;
                 }
@@ -81,7 +100,7 @@ public class Flock : MonoBehaviour
         }
 
         // Если группа есть
-        if(groupSize>0)
+        if (groupSize > 0)
         {
             // Нормализуем центр группы и скорость, учитывая и цель группы
             vCentre = vCentre / groupSize + (FlockManager.FM.goalLocation - this.transform.position);
@@ -94,7 +113,7 @@ public class Flock : MonoBehaviour
             Vector3 direction = (vCentre + vAvoid) - transform.position;
 
             // Разворачиваем
-            if(direction != Vector3.zero)
+            if (direction != Vector3.zero)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation,
                                                       Quaternion.LookRotation(direction),
