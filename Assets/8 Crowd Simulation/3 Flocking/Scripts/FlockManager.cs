@@ -25,6 +25,9 @@ public class FlockManager : MonoBehaviour
     [Range(0.5f, 5.0f)]
     public float rotationSpeed;
 
+    // Добавляем коррдинаты цели, куда будут стремиться рыбов
+    public Vector3 goalLocation = Vector3.zero;
+
 
     // Start is called before the first frame update
     void Start()
@@ -40,6 +43,7 @@ public class FlockManager : MonoBehaviour
                                                             Random.Range(-swimLimits.z, swimLimits.z));
             // Создаем рыбовое
             allFish[i] = Instantiate(fishPrefab, pos, Quaternion.identity);
+            goalLocation = this.transform.position;
         }
 
         FM = this;
@@ -53,6 +57,12 @@ public class FlockManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        // Выбираем рандомно, хотим менять то, куда будут рыбы двиатьсяя, или нет
+        if(Random.Range(0,100)<10)
+        {
+            goalLocation = new Vector3(Random.Range(-swimLimits.x, swimLimits.x),
+                                       Random.Range(-swimLimits.y, swimLimits.y),
+                                       Random.Range(-swimLimits.z, swimLimits.z));
+        }
     }
 }

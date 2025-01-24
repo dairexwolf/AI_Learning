@@ -16,7 +16,17 @@ public class Flock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ApplyRules();
+        // Делаем скорость рандомной
+        if(Random.Range(0, 100)<10)
+        {
+            speed = Random.Range(FlockManager.FM.minSpeed, FlockManager.FM.maxSpeed);
+        }
+
+        if (Random.Range(0, 100) < 15)
+        {
+            ApplyRules();
+        }
+        
         // Двигаем рыбовое вперед
         this.transform.Translate(0, 0, speed * Time.deltaTime);
     }
@@ -73,9 +83,12 @@ public class Flock : MonoBehaviour
         // Если группа есть
         if(groupSize>0)
         {
-            // Нормализуем центр группы и скорость
-            vCentre = vCentre / groupSize;
+            // Нормализуем центр группы и скорость, учитывая и цель группы
+            vCentre = vCentre / groupSize + (FlockManager.FM.goalLocation - this.transform.position);
             speed = gSpeed / groupSize;
+            // Не повзволяем рыбам развивать скорость больше максимальной
+            if (speed > FlockManager.FM.maxSpeed)
+                speed = FlockManager.FM.maxSpeed;
 
             // Задаем направление движения
             Vector3 direction = (vCentre + vAvoid) - transform.position;
