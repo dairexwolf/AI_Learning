@@ -12,7 +12,7 @@ public abstract class GAction : MonoBehaviour
     /// </summary>
     public float cost = 1.0f;
     public GameObject target;
-    public GameObject targetTag;
+    public string targetTag;
     public float duration = 0;
     // Будем испорльзовать их для удобаства, но потом закидывать в Словари
     public WorldState[] preConditions;
