@@ -29,7 +29,7 @@ public class GAgent : MonoBehaviour
     bool invoked = false;
 
     // Start is called before the first frame update
-    void Start()
+    protected virtual void Start()
     {
         GAction[] acts = this.GetComponents<GAction>();
         foreach (GAction a in acts)
