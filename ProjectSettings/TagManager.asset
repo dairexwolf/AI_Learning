@@ -14,6 +14,13 @@ TagManager:
   - cop
   - rob
   - goal
+  - Lounge
+  - WaitingArea
+  - Home
+  - Door
+  - Cubicle
+  - Reception
+  - ReceptionArea
   layers:
   - Default
   - TransparentFX
